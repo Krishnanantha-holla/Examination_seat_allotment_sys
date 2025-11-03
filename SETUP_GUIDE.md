@@ -51,22 +51,30 @@ CORS_ORIGIN=http://localhost:3000
 
 ### Step 3: Create Database
 
-Open PostgreSQL command prompt and run:
+**IMPORTANT:** Open **SQL Shell (psql)** from Windows Start Menu (NOT PowerShell!)
 
-```sql
--- Create database
+Once in SQL Shell, run these commands one at a time:
+
+```
 CREATE DATABASE exam_seating_db;
-
--- Connect to database
-\c exam_seating_db
-
--- Run schema (copy content from backend/db/schema.sql)
--- Paste the entire schema.sql content here
 ```
 
-Or run directly:
+Then:
+```
+\c exam_seating_db
+```
+
+Then (replace path if needed):
+```
+\i 'C:/projects/Mini Projects/5th sem/exam-seating-system/backend/db/schema.sql'
+```
+
+**Note:** Do NOT copy the triple backticks (```) - only copy the actual commands!
+
+Alternative: If psql is in your PATH, run from PowerShell:
 ```powershell
-psql -U postgres -f db/schema.sql
+psql -U postgres -c "CREATE DATABASE exam_seating_db;"
+psql -U postgres -d exam_seating_db -f "backend\db\schema.sql"
 ```
 
 ### Step 4: Start Backend Server
