@@ -37,7 +37,7 @@ router.post('/register', [
 
     // Create user
     const result = await pool.query(
-      'INSERT INTO users (username, email, password_hash, full_name, role) VALUES ($1, $2, $3, $4, $5) RETURNING id, username, email, full_name, role',
+      'INSERT INTO users (username, email, password, full_name, role) VALUES ($1, $2, $3, $4, $5) RETURNING id, username, email, full_name, role',
       [username, email, hashedPassword, full_name, role]
     );
 
@@ -77,7 +77,7 @@ router.post('/login', [
     const user = result.rows[0];
 
     // Compare passwords
-    const passwordValid = await bcryptjs.compare(password, user.password_hash);
+    const passwordValid = await bcryptjs.compare(password, user.password);
 
     if (!passwordValid) {
       return res.status(401).json({ error: 'Invalid credentials' });
