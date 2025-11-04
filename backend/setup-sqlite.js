@@ -86,12 +86,20 @@ CREATE TABLE IF NOT EXISTS students (
 -- Exams table
 CREATE TABLE IF NOT EXISTS exams (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    exam_name TEXT NOT NULL,
+    exam_name TEXT,
     exam_date DATE NOT NULL,
-    exam_time TIME NOT NULL,
-    subject TEXT NOT NULL,
+    exam_time TIME,
+    exam_time_start TEXT,
+    exam_time_end TEXT,
+    subject TEXT,
+    subject_code TEXT,
+    subject_name TEXT,
+    course_id INTEGER,
+    semester INTEGER,
     duration INTEGER DEFAULT 180,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    status TEXT DEFAULT 'scheduled',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE SET NULL
 );
 
 -- Exam Students (enrollment)
