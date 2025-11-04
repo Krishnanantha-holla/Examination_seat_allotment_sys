@@ -19,6 +19,8 @@ import classroomRoutes from './routes/classrooms.js';
 import studentRoutes from './routes/students.js';
 import seatingRoutes from './routes/seating.js';
 import reportRoutes from './routes/reports.js';
+import publicRoutes from './routes/public.js';
+import userRoutes from './routes/users.js';
 
 // Initialize Express app
 const app = express();
@@ -34,6 +36,8 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // API Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/public', publicRoutes);
+app.use('/api/users', userRoutes);
 app.use('/api/exams', examRoutes);
 app.use('/api/classrooms', classroomRoutes);
 app.use('/api/students', studentRoutes);

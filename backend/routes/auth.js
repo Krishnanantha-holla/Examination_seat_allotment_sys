@@ -6,52 +6,15 @@ import pool from '../config/database.js';
 
 const router = express.Router();
 
-// Register endpoint
-router.post('/register', [
-  body('username').isLength({ min: 3 }).withMessage('Username must be at least 3 characters'),
-  body('email').isEmail().withMessage('Valid email is required'),
-  body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
-  body('full_name').notEmpty().withMessage('Full name is required'),
-  body('role').isIn(['admin', 'staff', 'student']).withMessage('Invalid role')
-], async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
-
-  try {
-    const { username, email, password, full_name, role } = req.body;
-
-    // Check if user exists
-    const userExists = await pool.query(
-      'SELECT * FROM users WHERE email = $1 OR username = $2',
-      [email, username]
-    );
-
-    if (userExists.rows.length > 0) {
-      return res.status(400).json({ error: 'User already exists' });
-    }
-
-    // Hash password
-    const hashedPassword = await bcryptjs.hash(password, 10);
-
-    // Create user
-    const result = await pool.query(
-      'INSERT INTO users (username, email, password, full_name, role) VALUES ($1, $2, $3, $4, $5) RETURNING id, username, email, full_name, role',
-      [username, email, hashedPassword, full_name, role]
-    );
-
-    res.status(201).json({
-      message: 'User registered successfully',
-      user: result.rows[0]
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Server error during registration' });
-  }
+// Register endpoint - DISABLED (Admin only system)
+router.post('/register', async (req, res) => {
+  return res.status(403).json({ 
+    error: 'Registration is disabled. Please contact the administrator.',
+    message: 'This system has a single admin account only.'
+  });
 });
 
-// Login endpoint
+// Login endpoint (admin/staff only)
 router.post('/login', [
   body('email').isEmail().withMessage('Valid email is required'),
   body('password').notEmpty().withMessage('Password is required')
@@ -75,6 +38,11 @@ router.post('/login', [
     }
 
     const user = result.rows[0];
+
+    // Only allow admin or staff accounts to login
+    if (!['admin', 'staff'].includes(user.role)) {
+      return res.status(403).json({ error: 'Only admin or staff can login here' });
+    }
 
     // Compare passwords
     const passwordValid = await bcryptjs.compare(password, user.password);
@@ -123,5 +91,60 @@ export const verifyToken = (req, res, next) => {
     res.status(401).json({ error: 'Invalid token' });
   }
 };
+
+// Admin guard
+export const verifyAdmin = (req, res, next) => {
+  if (!req.user || req.user.role !== 'admin') {
+    return res.status(403).json({ error: 'Admin access required' });
+  }
+  next();
+};
+
+// Change password endpoint (Admin only)
+router.post('/change-password', verifyToken, [
+  body('currentPassword').notEmpty().withMessage('Current password is required'),
+  body('newPassword').isLength({ min: 6 }).withMessage('New password must be at least 6 characters')
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  try {
+    const { currentPassword, newPassword } = req.body;
+    
+    // Get user
+    const result = await pool.query(
+      'SELECT * FROM users WHERE id = $1',
+      [req.user.id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const user = result.rows[0];
+
+    // Verify current password
+    const passwordValid = await bcryptjs.compare(currentPassword, user.password);
+    if (!passwordValid) {
+      return res.status(401).json({ error: 'Current password is incorrect' });
+    }
+
+    // Hash new password
+    const hashedPassword = await bcryptjs.hash(newPassword, 10);
+
+    // Update password
+    await pool.query(
+      'UPDATE users SET password = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
+      [hashedPassword, req.user.id]
+    );
+
+    res.json({ message: 'Password changed successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Server error during password change' });
+  }
+});
 
 export default router;

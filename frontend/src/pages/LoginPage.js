@@ -31,7 +31,7 @@ export const LoginPage = () => {
       <div className="card w-full max-w-md">
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-bold text-gray-800 mb-2">ExamSeating</h1>
-          <p className="text-gray-600">Examination Seat Allotment System</p>
+          <p className="text-gray-600">Administrator Login</p>
         </div>
 
         {error && (
@@ -51,7 +51,7 @@ export const LoginPage = () => {
               id="email"
               type="email"
               className="input"
-              placeholder="you@example.com"
+              placeholder="admin@examseating.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -79,12 +79,14 @@ export const LoginPage = () => {
             disabled={loading}
             className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Logging in...' : 'Login'}
+            {loading ? 'Logging in...' : 'Login as Administrator'}
           </button>
         </form>
 
         <div className="mt-6 text-center text-sm text-gray-600">
-          Don't have an account? <a href="/register" className="text-blue-600 hover:underline">Register here</a>
+          <a className="text-blue-600 hover:underline" href="/student">Students: View your seating by USN</a>
+          <p className="text-xs mt-2 text-gray-500">Staff can login here too (created by Admin)</p>
+          <p className="text-xs mt-1 text-gray-400">Default admin: admin@examseating.com / admin123</p>
         </div>
       </div>
     </div>
