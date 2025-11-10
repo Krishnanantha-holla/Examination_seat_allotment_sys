@@ -176,27 +176,28 @@ async function main() {
     )
   );
 
-  // Create sample invigilators
-  const invigilators = await Promise.all([
-    prisma.invigilator.upsert({
-      where: { contact: '+919876543210' },
-      update: {},
-      create: {
+  // Create sample invigilators (use findFirst/create because `contact` is not a unique field)
+  const inv1 =
+    (await prisma.invigilator.findFirst({ where: { contact: '+919876543210' } })) ||
+    (await prisma.invigilator.create({
+      data: {
         name: 'Dr. John Smith',
         contact: '+919876543210',
         email: 'john.smith@examseating.edu',
       },
-    }),
-    prisma.invigilator.upsert({
-      where: { contact: '+919876543211' },
-      update: {},
-      create: {
+    }));
+
+  const inv2 =
+    (await prisma.invigilator.findFirst({ where: { contact: '+919876543211' } })) ||
+    (await prisma.invigilator.create({
+      data: {
         name: 'Prof. Jane Doe',
         contact: '+919876543211',
         email: 'jane.doe@examseating.edu',
       },
-    }),
-  ]);
+    }));
+
+  const invigilators = [inv1, inv2];
 
   console.log(`Created ${invigilators.length} invigilators`);
 
