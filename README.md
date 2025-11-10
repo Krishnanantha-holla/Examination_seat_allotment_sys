@@ -1,290 +1,692 @@
-# Examination Seat Allotment System
+# 🎓 Examination Seat Allotment System
 
-A full-stack web application for managing examination seat allocation with intelligent algorithm implementation.
+A complete, production-ready full-stack web application for managing examination seating arrangements with intelligent seat allocation algorithms and role-based access control.
 
-## Features
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Node](https://img.shields.io/badge/node-v18%2B-green.svg)
+![TypeScript](https://img.shields.io/badge/typescript-v5.3-blue.svg)
 
-✅ **User Authentication** - Role-based login (Admin, Staff, Student)
-✅ **Exam Management** - Create and manage examinations
-✅ **Classroom Setup** - Configure floors, classrooms, and benches
-✅ **Student Management** - Add students individually or via CSV bulk upload
-✅ **Intelligent Seat Allocation** - Algorithm ensures:
-   - No students from same course in same bench
-   - No students of same subject in same bench
-   - Configurable students per bench (1-3)
-✅ **Seating Reports** - Sortable by floor, classroom, or course
-✅ **Responsive UI** - Works on desktop, tablet, and mobile
-✅ **Security** - JWT authentication, encrypted communication
+## ✨ Features
 
-## Tech Stack
+### 🔐 Three-Tier Authentication System
+- **Admin**: Full system control, user management, and audit log access
+- **Staff (Seat Planner)**: Student/classroom/exam management and seating generation
+- **Student**: USN-based seat lookup with printable tickets
 
-### Backend
-- **Runtime**: Node.js
+### 📊 Core Functionality
+
+#### Student Management
+- ✅ **Dual Input Methods**: CSV bulk import OR manual web form entry
+- ✅ Real-time validation (USN format, course/subject verification)
+- ✅ Duplicate USN prevention
+- ✅ Full CRUD operations with instant PostgreSQL sync
+- ✅ Advanced search and filtering
+- ✅ Pagination for large datasets
+
+#### Intelligent Seating Algorithm
+- 🧠 **USN-sorted allocation** (ascending order)
+- 🚫 **Constraint enforcement**:
+  - No same course/subject on adjacent seats
+  - Special 3-seat bench rules (edges same course, middle different)
+  - Configurable lookahead window for conflict resolution
+- ⚠️ **Conflict detection & reporting** with detailed logs
+- 🔄 **Smart swap logic** for optimization
+- ⚙️ **Configurable** seats per bench (1-4)
+
+#### Comprehensive Data Management
+- 📚 **Courses**: Computer Science, Electronics, Mechanical, etc.
+- 📖 **Subjects**: Engineering Mathematics, Physics, Data Structures, etc.
+- 📝 **Exams**: Mid-sem, Final, Makeup with dates/times
+- 🏫 **Classrooms**: Room capacity, floor info, bench counts
+- 👨‍🏫 **Invigilators**: Assignment to specific classrooms/exams
+
+#### Reports & Export
+- 📄 **PDF Export**: Classroom-wise seating charts
+- 📊 **CSV Export**: Complete seating data for analysis
+- 🎫 **Student Tickets**: Printable seat confirmation with QR codes
+- 🔍 **Filtering**: By classroom, floor, course, or exam
+
+#### Security & Audit
+- 🔒 JWT-based authentication with bcrypt password hashing
+- 🛡️ Role-based access control (RBAC) middleware
+- 📋 **Audit logs** tracking all admin/staff actions
+- 🌐 HTTPS-ready, CORS-configured, XSS/CSRF protection
+- 🔑 Secure cookie/session management
+
+---
+
+## 🏗️ Architecture
+
+### Tech Stack
+
+#### Backend
+- **Runtime**: Node.js 18+ with TypeScript
 - **Framework**: Express.js
-- **Database**: PostgreSQL
-- **Authentication**: JWT + bcryptjs
-- **Validation**: express-validator
-- **File Upload**: multer + csv-parser
+- **Database**: PostgreSQL 15+
+- **ORM**: Prisma (with migrations)
+- **Auth**: JWT + bcrypt
+- **File Uploads**: Multer
+- **Logging**: Winston
+- **Testing**: Jest + Supertest
 
-### Frontend
-- **Framework**: React 18
+#### Frontend
+- **Framework**: React 18 with TypeScript
+- **Build Tool**: Vite
 - **Routing**: React Router v6
+- **State**: Zustand (lightweight store)
 - **Styling**: Tailwind CSS
 - **HTTP Client**: Axios
-- **Icons**: Lucide React
-- **Utilities**: date-fns, PapaParse
+- **Notifications**: React Hot Toast
+- **Testing**: React Testing Library
 
-## Project Structure
+#### Infrastructure
+- **Containerization**: Docker + Docker Compose
+- **Web Server**: Nginx (for frontend)
+- **Database**: PostgreSQL (containerized)
+
+---
+
+## 📂 Project Structure
 
 ```
 exam-seating-system/
 ├── backend/
-│   ├── config/
-│   │   └── database.js
-│   ├── routes/
-│   │   ├── auth.js
-│   │   ├── exams.js
-│   │   ├── classrooms.js
-│   │   ├── students.js
-│   │   ├── seating.js
-│   │   └── reports.js
-│   ├── db/
-│   │   └── schema.sql
-│   ├── server.js
+│   ├── prisma/
+│   │   ├── schema.prisma          # Database schema
+│   │   └── seed.ts                # Initial data seeder
+│   ├── src/
+│   │   ├── config/                # Database & app config
+│   │   ├── controllers/           # Route controllers
+│   │   ├── services/              # Business logic
+│   │   │   ├── auth.service.ts
+│   │   │   ├── student.service.ts
+│   │   │   └── seating.service.ts  # Core algorithm
+│   │   ├── middleware/            # Auth, validation, audit
+│   │   ├── routes/                # API endpoints
+│   │   ├── utils/                 # Helpers & logger
+│   │   └── server.ts              # App entry point
+│   ├── uploads/                   # CSV file storage
+│   ├── exports/                   # PDF/CSV outputs
+│   ├── logs/                      # Application logs
+│   ├── Dockerfile
 │   ├── package.json
-│   └── .env.example
-│
+│   └── tsconfig.json
 ├── frontend/
 │   ├── src/
-│   │   ├── api/
-│   │   │   └── client.js
-│   │   ├── context/
-│   │   │   └── AuthContext.js
-│   │   ├── components/
-│   │   │   ├── ProtectedRoute.js
-│   │   │   └── Layout.js
-│   │   ├── pages/
-│   │   │   ├── LoginPage.js
-│   │   │   ├── RegisterPage.js
-│   │   │   ├── DashboardPage.js
-│   │   │   └── ExamsPage.js
-│   │   ├── App.js
-│   │   ├── index.js
-│   │   └── index.css
-│   ├── public/
-│   │   └── index.html
-│   ├── package.json
+│   │   ├── components/            # Reusable UI components
+│   │   ├── pages/                 # Route pages
+│   │   │   ├── LoginPage.tsx
+│   │   │   ├── AdminDashboard.tsx
+│   │   │   ├── StaffDashboard.tsx
+│   │   │   └── StudentPage.tsx
+│   │   ├── stores/                # Zustand state stores
+│   │   ├── lib/                   # API client & utilities
+│   │   ├── App.tsx                # Main app component
+│   │   └── main.tsx               # Entry point
+│   ├── index.html
+│   ├── Dockerfile
+│   ├── nginx.conf
 │   ├── tailwind.config.js
-│   └── postcss.config.js
-│
-└── .github/
-    └── copilot-instructions.md
+│   ├── package.json
+│   └── vite.config.ts
+├── docker-compose.yml             # Multi-container setup
+├── .env.example                   # Environment template
+└── README.md
 ```
 
-## Installation & Setup
+---
+
+## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js v16 or higher
-- PostgreSQL 12 or higher
-- npm or yarn
+- **Node.js** 18+ ([Download](https://nodejs.org/))
+- **Docker** & **Docker Compose** ([Download](https://www.docker.com/))
+- **PostgreSQL** 15+ (if running locally without Docker)
 
-### Backend Setup
+### 1️⃣ Clone Repository
+```bash
+git clone https://github.com/yourusername/exam-seating-system.git
+cd exam-seating-system
+```
 
-1. Navigate to backend directory:
+### 2️⃣ Environment Setup
+```bash
+# Copy environment template
+cp .env.example .env
+
+# Edit .env with your configurations
+# Key variables:
+# - DATABASE_URL
+# - JWT_SECRET
+# - ADMIN_EMAIL
+# - ADMIN_PASSWORD
+```
+
+### 3️⃣ Using Docker (Recommended)
+
+#### Start All Services
+```bash
+docker-compose up -d
+```
+
+This will:
+- ✅ Start PostgreSQL database on port **5432**
+- ✅ Run backend API on port **5000**
+- ✅ Serve frontend on port **3000**
+- ✅ Apply database migrations
+- ✅ Create admin user
+
+#### Check Status
+```bash
+docker-compose ps
+```
+
+#### View Logs
+```bash
+docker-compose logs -f backend
+```
+
+#### Stop Services
+```bash
+docker-compose down
+```
+
+### 4️⃣ Manual Setup (Without Docker)
+
+#### Backend
 ```bash
 cd backend
-```
 
-2. Install dependencies:
-```bash
+# Install dependencies
 npm install
-```
 
-3. Create `.env` file from template:
-```bash
-cp .env.example .env
-```
+# Setup database (update .env with your PostgreSQL URL)
+npx prisma generate
+npx prisma migrate dev
 
-4. Update `.env` with your database credentials:
-```
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=exam_seating_db
-DB_USER=postgres
-DB_PASSWORD=your_password
-JWT_SECRET=your_jwt_secret_key
-```
+# Seed initial data
+npm run prisma:seed
 
-5. Create database and schema:
-```bash
-psql -U postgres -f db/schema.sql
-```
-
-6. Start backend server:
-```bash
+# Start development server
 npm run dev
 ```
 
-Backend runs on `http://localhost:5000`
+Backend runs on **http://localhost:5000**
 
-### Frontend Setup
-
-1. Navigate to frontend directory:
+#### Frontend
 ```bash
 cd frontend
-```
 
-2. Install dependencies:
-```bash
+# Install dependencies
 npm install
+
+# Start development server
+npm run dev
 ```
 
-3. Start development server:
-```bash
-npm start
+Frontend runs on **http://localhost:3000**
+
+---
+
+## 🔑 Default Login Credentials
+
+| Role    | Email                        | Password   |
+|---------|------------------------------|------------|
+| Admin   | admin@examseating.edu        | Admin@123  |
+| Staff   | staff@examseating.edu        | Staff@123  |
+
+> ⚠️ **Important**: Change these passwords immediately in production!
+
+---
+
+## 📝 API Documentation
+
+### Base URL
 ```
-
-Frontend runs on `http://localhost:3000`
-
-## API Endpoints
+http://localhost:5000/api
+```
 
 ### Authentication
-- `POST /api/auth/register` - Register new user
-- `POST /api/auth/login` - Login user
+All protected routes require JWT token in header:
+```
+Authorization: Bearer <token>
+```
 
-### Exams Management
-- `GET /api/exams` - Get all exams
-- `GET /api/exams/:id` - Get exam by ID
-- `POST /api/exams` - Create new exam
-- `PUT /api/exams/:id` - Update exam
-- `DELETE /api/exams/:id` - Delete exam
+### Core Endpoints
 
-### Classroom Management
-- `GET /api/classrooms` - Get all classrooms
-- `GET /api/classrooms/floor/:floorId` - Get classrooms by floor
-- `POST /api/classrooms` - Create classroom
-- `PUT /api/classrooms/:id` - Update classroom
-- `DELETE /api/classrooms/:id` - Delete classroom
+#### 🔐 Authentication
+```http
+POST   /auth/login              # User login
+POST   /auth/register           # Create new user (Admin only)
+POST   /auth/logout             # Logout
+GET    /auth/me                 # Get current user
+```
 
-### Student Management
-- `GET /api/students` - Get all students
-- `GET /api/students/:usn` - Get student by USN
-- `POST /api/students` - Create student
-- `POST /api/students/upload/csv` - Bulk upload students from CSV
-- `PUT /api/students/:id` - Update student
-- `DELETE /api/students/:id` - Delete student
+#### 👨‍🎓 Students
+```http
+POST   /students                # Create student (manual)
+POST   /students/import-csv     # Bulk import via CSV
+GET    /students                # List all (with pagination)
+GET    /students/:id            # Get by ID
+GET    /students/usn/:usn       # Get by USN
+PUT    /students/:id            # Update student
+DELETE /students/:id            # Delete student
+```
 
-### Seating Allocation
-- `POST /api/seating/allocate` - Allocate seats with algorithm
-- `GET /api/seating/exam/:examId` - Get seating for exam
-- `GET /api/seating/student/:studentId/exam/:examId` - Get student seating
-- `POST /api/seating/assign-invigilator` - Assign invigilator
-
-### Reports
-- `GET /api/reports/exam/:examId?sortBy=classroom` - Get exam report (sort by: classroom, floor, course)
-- `GET /api/reports/statistics/exam/:examId` - Get statistics
-- `GET /api/reports/classroom/:classroomId/exam/:examId` - Get classroom-wise report
-
-## CSV Format for Student Upload
-
+**CSV Format Example:**
 ```csv
-usn,full_name,email,course_code,semester
-1PG20CS001,John Doe,john@example.com,CS101,5
-1PG20CS002,Jane Smith,jane@example.com,CS101,5
-1PG20CS003,Bob Johnson,bob@example.com,CS102,5
+usn,name,contact,email,courseCode,examCode,subjectCodes
+1CS21CS001,John Doe,9876543210,john@example.com,CSE,MID-SEM-2024,"MATH101,PHY101,CSE201"
+1CS21CS002,Jane Smith,9876543211,jane@example.com,CSE,MID-SEM-2024,"MATH101,CSE201,CSE202"
 ```
 
-## Usage Guide
+#### 📚 Courses
+```http
+POST   /courses                 # Create course
+GET    /courses                 # List all
+GET    /courses/:id             # Get by ID
+PUT    /courses/:id             # Update course
+DELETE /courses/:id             # Delete course
+```
 
-### 1. Admin Setup
-- Register as Admin
-- Create floors and classrooms
-- Create courses
-- Import student data via CSV
+#### 📖 Subjects
+```http
+POST   /subjects                # Create subject
+GET    /subjects                # List all
+GET    /subjects/:id            # Get by ID
+PUT    /subjects/:id            # Update subject
+DELETE /subjects/:id            # Delete subject
+```
 
-### 2. Configure Exam
-- Create exam with date, time, subject
-- Enroll students in exam
-- Assign invigilators
+#### 📝 Exams
+```http
+POST   /exams                   # Create exam
+GET    /exams                   # List all
+GET    /exams/:id               # Get by ID
+PUT    /exams/:id               # Update exam
+DELETE /exams/:id               # Delete exam
+```
 
-### 3. Allocate Seats
-- Go to Seating module
-- Select exam
-- Choose students per bench (1-3)
-- Click "Allocate Seats"
-- System will run algorithm and assign seats
+#### 🏫 Classrooms
+```http
+POST   /classrooms              # Create classroom
+GET    /classrooms              # List all
+GET    /classrooms/:id          # Get by ID
+PUT    /classrooms/:id          # Update classroom
+DELETE /classrooms/:id          # Delete classroom
+```
 
-### 4. Generate Report
-- Go to Reports section
-- Select exam
-- Choose sort option (Floor/Classroom/Course)
-- View or print seating arrangement
+#### 👨‍🏫 Invigilators
+```http
+POST   /invigilators            # Create invigilator
+POST   /invigilators/:id/assign # Assign to classroom
+GET    /invigilators            # List all
+GET    /invigilators/:id        # Get by ID
+PUT    /invigilators/:id        # Update invigilator
+DELETE /invigilators/:id        # Delete invigilator
+```
 
-## Security Features
+#### 🪑 Seating
+```http
+POST   /seating/plan            # Generate seating plan
+GET    /seating/exam/:examId    # Get seating for exam
+GET    /seating/student?usn=XXX # Get student's seat
+GET    /seating/export          # Export as PDF/CSV
+```
 
-- ✅ JWT-based authentication
-- ✅ Password hashing with bcryptjs
-- ✅ CORS protection
-- ✅ Helmet.js security headers
-- ✅ Input validation & sanitization
-- ✅ SQL injection protection (parameterized queries)
-- ✅ XSS protection (React escaping)
-- ✅ Audit logging for admin actions
+**Generate Seating Request:**
+```json
+{
+  "examId": "uuid-here",
+  "classroomIds": ["uuid1", "uuid2"],  // optional
+  "seatsPerBench": 3                   // optional, overrides classroom default
+}
+```
 
-## Performance Considerations
+**Response:**
+```json
+{
+  "success": true,
+  "statistics": {
+    "totalStudents": 120,
+    "totalAssignments": 120,
+    "classroomsUsed": 3,
+    "conflicts": 0
+  },
+  "conflicts": []
+}
+```
 
-- Database indexes on frequently queried columns
-- Pagination support for large datasets
-- Session management for concurrent users
-- Connection pooling for database
+#### 📋 Audit Logs
+```http
+GET    /audit                   # View audit logs (Admin only)
+```
 
-## Browser Compatibility
+#### 👥 User Management
+```http
+GET    /users                   # List users (Admin only)
+GET    /users/:id               # Get user by ID
+PUT    /users/:id               # Update user
+DELETE /users/:id               # Delete user
+PUT    /users/:id/password      # Change password
+```
 
-- Chrome 90+
-- Firefox 88+
-- Safari 14+
-- Edge 90+
+---
 
-## Troubleshooting
+## 🧮 Seating Algorithm Details
 
-### Backend won't start
+### Core Logic
+
+1. **Student Sorting**: Sort all students by USN (ascending)
+
+2. **Classroom Allocation**: Distribute students across available classrooms based on capacity
+
+3. **Bench Assignment with Constraints**:
+   ```typescript
+   For each bench seat:
+     - Check if student's course/subject conflicts with adjacent seats
+     - If conflict exists:
+       * Search lookahead window for suitable student
+       * Swap if found
+       * Log conflict if no solution
+     - Assign student to seat
+   ```
+
+4. **Position Determination** (seats per bench):
+   - **1 seat**: `SINGLE`
+   - **2 seats**: `LEFT`, `RIGHT`
+   - **3 seats**: `LEFT`, `MIDDLE`, `RIGHT`
+   - **4 seats**: `LEFT`, `MIDDLE`, `MIDDLE`, `RIGHT`
+
+### Constraint Rules
+
+#### Same Course Check
+```
+Student A (CSE) cannot sit next to Student B (CSE)
+```
+
+#### Same Subject Check
+```
+Student A (subjects: MATH101, PHY101)
+Student B (subjects: MATH101, CSE201)
+❌ Cannot sit together (common subject: MATH101)
+```
+
+#### Special 3-Seat Bench Rule
+```
+[Edge Seat] [Middle Seat] [Edge Seat]
+  CSE          ECE           CSE         ✅ Valid
+  CSE          CSE           ECE         ❌ Invalid
+```
+
+### Configuration (via `.env`)
 ```bash
-# Check if port 5000 is in use
-netstat -an | grep 5000
-
-# Kill process on port 5000
-lsof -ti:5000 | xargs kill -9
+SEATING_LOOKAHEAD_WINDOW=5       # How many students ahead to check for swaps
+SEATING_MAX_SWAP_ATTEMPTS=100    # Maximum swap iterations
 ```
 
-### Database connection error
+---
+
+## 🗄️ Database Schema
+
+### Core Tables
+
+```sql
+users (id, email, name, password_hash, role, created_at, updated_at)
+students (id, usn, name, contact, email, course_id, exam_id, user_id)
+courses (id, code, name)
+subjects (id, code, name)
+exams (id, code, name, date, start_time, end_time)
+classrooms (id, name, floor, benches_count, seats_per_bench, total_capacity)
+invigilators (id, name, contact, email)
+seating_assignments (id, student_id, classroom_id, exam_id, bench_number, seat_index, position)
+audit_logs (id, user_id, action, details, ip_address, timestamp)
+```
+
+### Relationships
+- Students → Course (Many-to-One)
+- Students ↔ Subjects (Many-to-Many)
+- Students → Exam (Many-to-One)
+- Seating Assignment → Student, Classroom, Exam (Many-to-One each)
+- Audit Log → User (Many-to-One)
+
+---
+
+## 🧪 Testing
+
+### Backend Tests
 ```bash
-# Check PostgreSQL is running
-psql -U postgres -d exam_seating_db
-
-# Re-run schema
-psql -U postgres -f db/schema.sql
+cd backend
+npm test                  # Run all tests
+npm run test:watch        # Watch mode
+npm test -- --coverage    # Coverage report
 ```
 
-### Frontend not connecting to backend
-- Verify backend is running on localhost:5000
-- Check CORS settings in backend/server.js
-- Update .env CORS_ORIGIN if needed
+### Frontend Tests
+```bash
+cd frontend
+npm test                  # Run React component tests
+```
 
-## Future Enhancements
+### Manual API Testing (using curl)
+```bash
+# Login
+curl -X POST http://localhost:5000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@examseating.edu","password":"Admin@123"}'
 
-- [ ] Email notifications for students
-- [ ] Real-time exam monitoring
-- [ ] Mobile app for students
+# Get Students (with token)
+curl http://localhost:5000/api/students \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"
+```
+
+---
+
+## 🔧 Configuration
+
+### Backend Environment Variables
+```bash
+# Database
+DATABASE_URL="postgresql://user:pass@localhost:5432/examseating"
+
+# JWT Authentication
+JWT_SECRET="your-super-secret-jwt-key-change-in-production"
+JWT_EXPIRES_IN="7d"
+
+# Server
+PORT=5000
+NODE_ENV="development"
+FRONTEND_URL="http://localhost:3000"
+
+# Algorithm
+SEATING_LOOKAHEAD_WINDOW=5
+SEATING_MAX_SWAP_ATTEMPTS=100
+
+# File Upload
+MAX_FILE_SIZE=10485760  # 10MB
+UPLOAD_DIR="./uploads"
+EXPORT_DIR="./exports"
+
+# Admin Setup (First Run)
+ADMIN_EMAIL="admin@examseating.edu"
+ADMIN_PASSWORD="Admin@123"
+ADMIN_NAME="System Administrator"
+```
+
+### Frontend Environment Variables
+```bash
+VITE_API_URL=http://localhost:5000/api
+```
+
+---
+
+## 🚢 Production Deployment
+
+### 1. Update Environment
+```bash
+# Generate strong JWT secret
+JWT_SECRET=$(openssl rand -base64 64)
+
+# Use production database URL
+DATABASE_URL="postgresql://prod_user:prod_pass@db_host:5432/examseating_prod"
+
+# Enable production mode
+NODE_ENV="production"
+```
+
+### 2. Build & Deploy with Docker
+```bash
+docker-compose -f docker-compose.prod.yml up -d --build
+```
+
+### 3. SSL/TLS Setup (Nginx)
+```bash
+# Install Certbot
+sudo apt install certbot python3-certbot-nginx
+
+# Obtain certificate
+sudo certbot --nginx -d yourdomain.com
+
+# Auto-renewal
+sudo certbot renew --dry-run
+```
+
+### 4. Database Backups
+```bash
+# Automated backup script (add to cron)
+#!/bin/bash
+pg_dump -U examuser examseating > backup_$(date +%Y%m%d).sql
+gzip backup_$(date +%Y%m%d).sql
+# Upload to S3/Cloud Storage
+```
+
+### 5. Monitoring
+- **Logs**: Winston logs to `/backend/logs/`
+- **Metrics**: Integrate Prometheus + Grafana
+- **Alerts**: Set up error notifications (email/Slack)
+
+---
+
+## 🐛 Troubleshooting
+
+### Issue: Port Already in Use
+```bash
+# Find process using port
+lsof -i :5000
+# Kill process
+kill -9 <PID>
+```
+
+### Issue: Database Connection Failed
+```bash
+# Check PostgreSQL status
+docker-compose logs db
+
+# Verify DATABASE_URL format
+postgresql://user:password@host:port/database
+```
+
+### Issue: Prisma Migration Errors
+```bash
+# Reset database (⚠️ deletes all data)
+npx prisma migrate reset
+
+# Or manually fix
+npx prisma migrate resolve --applied "migration_name"
+```
+
+### Issue: Frontend Build Fails
+```bash
+# Clear cache
+rm -rf node_modules package-lock.json
+npm install
+
+# Check Node version
+node -v  # Should be 18+
+```
+
+---
+
+## 📊 Sample Data
+
+### Create Sample Course
+```bash
+curl -X POST http://localhost:5000/api/courses \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer TOKEN" \
+  -d '{"code":"CSE","name":"Computer Science Engineering"}'
+```
+
+### Import Sample Students (CSV)
+Create `students.csv`:
+```csv
+usn,name,contact,email,courseCode,examCode,subjectCodes
+1CS21CS001,Alice Johnson,9876543210,alice@edu,CSE,MID-SEM-2024,"MATH101,CSE201"
+1CS21CS002,Bob Smith,9876543211,bob@edu,CSE,MID-SEM-2024,"MATH101,CSE202"
+1EC21EC001,Carol White,9876543212,carol@edu,ECE,MID-SEM-2024,"MATH101,ECE201"
+```
+
+Upload via UI or:
+```bash
+curl -X POST http://localhost:5000/api/students/import-csv \
+  -H "Authorization: Bearer TOKEN" \
+  -F "file=@students.csv"
+```
+
+---
+
+## 📞 Support & Contribution
+
+### Reporting Issues
+Open an issue on [GitHub Issues](https://github.com/yourusername/exam-seating-system/issues)
+
+### Contributing
+1. Fork the repository
+2. Create feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit changes (`git commit -m 'Add AmazingFeature'`)
+4. Push to branch (`git push origin feature/AmazingFeature`)
+5. Open Pull Request
+
+### Code Style
+- **Backend**: ESLint + Prettier (TypeScript)
+- **Frontend**: ESLint + Prettier (React/TypeScript)
+- **Commits**: Conventional Commits format
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 🙏 Acknowledgments
+
+- [Prisma](https://www.prisma.io/) for excellent ORM
+- [Tailwind CSS](https://tailwindcss.com/) for utility-first styling
+- [React](https://react.dev/) for UI framework
+- [Express.js](https://expressjs.com/) for backend framework
+
+---
+
+## 📈 Roadmap
+
+### v1.1 (Upcoming)
+- [ ] Email notifications for seat assignments
+- [ ] SMS integration for reminders
+- [ ] QR code generation for tickets
+- [ ] Mobile app (React Native)
 - [ ] Advanced analytics dashboard
 - [ ] Multi-language support
-- [ ] Integration with SIS
-- [ ] Automated backup system
-- [ ] Cloud deployment templates
 
-## License
+### v2.0 (Future)
+- [ ] AI-powered conflict resolution
+- [ ] Blockchain-based audit trail
+- [ ] Real-time seating updates (WebSockets)
+- [ ] Integration with university ERP systems
 
-MIT
+---
 
-## Support
+**Made with ❤️ for Educational Institutions**
 
-For issues or questions, please create an issue in the repository.
+For questions or support, contact: support@examseating.edu

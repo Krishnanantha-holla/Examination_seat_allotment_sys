@@ -1,0 +1,214 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  STAFF
+  STUDENT
+}
+
+enum SeatPosition {
+  LEFT
+  MIDDLE
+  RIGHT
+  SINGLE
+}
+
+model User {
+  id           String      @id @default(uuid())
+  email        String      @unique
+  name         String
+  passwordHash String      @map("password_hash")
+  role         UserRole
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
+  auditLogs    AuditLog[]
+  student      Student?
+
+  @@index([email])
+  @@index([role])
+  @@map("users")
+}
+
+model Student {
+  id                  String              @id @default(uuid())
+  usn                 String              @unique
+  name                String
+  contact             String?
+  email               String?
+  courseId            String              @map("course_id")
+  examId              String              @map("exam_id")
+  userId              String?             @unique @map("user_id")
+  createdAt           DateTime            @default(now()) @map("created_at")
+  updatedAt           DateTime            @updatedAt @map("updated_at")
+  course              Course              @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  exam                Exam                @relation(fields: [examId], references: [id], onDelete: Cascade)
+  user                User?               @relation(fields: [userId], references: [id], onDelete: SetNull)
+  subjects            StudentSubject[]
+  seatingAssignments  SeatingAssignment[]
+
+  @@index([usn])
+  @@index([courseId])
+  @@index([examId])
+  @@map("students")
+}
+
+model Course {
+  id        String    @id @default(uuid())
+  code      String    @unique
+  name      String
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  students  Student[]
+
+  @@index([code])
+  @@map("courses")
+}
+
+model Subject {
+  id              String           @id @default(uuid())
+  code            String           @unique
+  name            String
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+  students        StudentSubject[]
+  examSubjects    ExamSubject[]
+
+  @@index([code])
+  @@map("subjects")
+}
+
+model StudentSubject {
+  studentId String  @map("student_id")
+  subjectId String  @map("subject_id")
+  student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  subject   Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  @@id([studentId, subjectId])
+  @@map("student_subjects")
+}
+
+model Exam {
+  id                 String              @id @default(uuid())
+  code               String              @unique
+  name               String
+  date               DateTime
+  startTime          DateTime            @map("start_time")
+  endTime            DateTime            @map("end_time")
+  createdAt          DateTime            @default(now()) @map("created_at")
+  updatedAt          DateTime            @updatedAt @map("updated_at")
+  students           Student[]
+  subjects           ExamSubject[]
+  seatingAssignments SeatingAssignment[]
+  classrooms         ExamClassroom[]
+
+  @@index([code])
+  @@index([date])
+  @@map("exams")
+}
+
+model ExamSubject {
+  examId    String  @map("exam_id")
+  subjectId String  @map("subject_id")
+  exam      Exam    @relation(fields: [examId], references: [id], onDelete: Cascade)
+  subject   Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  @@id([examId, subjectId])
+  @@map("exam_subjects")
+}
+
+model Classroom {
+  id                 String              @id @default(uuid())
+  name               String              @unique
+  floor              String
+  benchesCount       Int                 @map("benches_count")
+  seatsPerBench      Int                 @map("seats_per_bench")
+  totalCapacity      Int                 @map("total_capacity")
+  createdAt          DateTime            @default(now()) @map("created_at")
+  updatedAt          DateTime            @updatedAt @map("updated_at")
+  seatingAssignments SeatingAssignment[]
+  exams              ExamClassroom[]
+  invigilators       ClassroomInvigilator[]
+
+  @@index([name])
+  @@index([floor])
+  @@map("classrooms")
+}
+
+model ExamClassroom {
+  examId      String    @map("exam_id")
+  classroomId String    @map("classroom_id")
+  exam        Exam      @relation(fields: [examId], references: [id], onDelete: Cascade)
+  classroom   Classroom @relation(fields: [classroomId], references: [id], onDelete: Cascade)
+
+  @@id([examId, classroomId])
+  @@map("exam_classrooms")
+}
+
+model Invigilator {
+  id          String                 @id @default(uuid())
+  name        String
+  contact     String
+  email       String?
+  createdAt   DateTime               @default(now()) @map("created_at")
+  updatedAt   DateTime               @updatedAt @map("updated_at")
+  classrooms  ClassroomInvigilator[]
+
+  @@index([name])
+  @@map("invigilators")
+}
+
+model ClassroomInvigilator {
+  classroomId   String      @map("classroom_id")
+  invigilatorId String      @map("invigilator_id")
+  examId        String?     @map("exam_id")
+  classroom     Classroom   @relation(fields: [classroomId], references: [id], onDelete: Cascade)
+  invigilator   Invigilator @relation(fields: [invigilatorId], references: [id], onDelete: Cascade)
+
+  @@id([classroomId, invigilatorId])
+  @@map("classroom_invigilators")
+}
+
+model SeatingAssignment {
+  id           String       @id @default(uuid())
+  studentId    String       @map("student_id")
+  classroomId  String       @map("classroom_id")
+  examId       String       @map("exam_id")
+  benchNumber  Int          @map("bench_number")
+  seatIndex    Int          @map("seat_index")
+  position     SeatPosition
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+  student      Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  classroom    Classroom    @relation(fields: [classroomId], references: [id], onDelete: Cascade)
+  exam         Exam         @relation(fields: [examId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, examId])
+  @@unique([classroomId, examId, benchNumber, seatIndex])
+  @@index([examId])
+  @@index([classroomId])
+  @@map("seating_assignments")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  action    String
+  details   Json
+  ipAddress String?  @map("ip_address")
+  timestamp DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([timestamp])
+  @@map("audit_logs")
+}
