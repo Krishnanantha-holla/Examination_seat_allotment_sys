@@ -1,6 +1,5 @@
 import { ReactNode } from 'react';
 import { useAuthStore } from '../stores/authStore';
-import { useLocation } from 'react-router-dom';
 
 interface LayoutProps {
   children: ReactNode;
@@ -8,7 +7,6 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   const { user, logout } = useAuthStore();
-  const location = useLocation();
 
   // location is kept in case pages need to highlight active nav items later
   // unused helpers removed to avoid TS warnings until needed
