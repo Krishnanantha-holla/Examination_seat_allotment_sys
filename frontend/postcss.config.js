@@ -1,3 +1,6 @@
-export default {
-  extends: ['@commitlint/config-conventional'],
+module.exports = {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
 };
