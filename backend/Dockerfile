@@ -26,6 +26,7 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 COPY prisma ./prisma/
+COPY --from=builder /app/prisma/seed.js ./prisma/seed.js
 
 # Install production dependencies only
 RUN npm ci --only=production
